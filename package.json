@@ -1,0 +1,14 @@
+{
+    "name": "node_stream",
+    "version": "1.0.0",
+    "description": "Examples to work with NodeJS stream",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Quynh Nguyen",
+    "license": "ISC",
+    "dependencies": {
+        "debounce": "^1.2.0"
+    }
+}
