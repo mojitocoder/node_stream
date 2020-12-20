@@ -1,4 +1,5 @@
 const fs = require('fs')
+const { once } = require('process')
 const readline = require('readline')
 
 const writer = fs.createWriteStream('postcode.txt')
@@ -18,6 +19,7 @@ rl.on('line', (line) => {
     longitude: parseFloat(parts[2])
   }
   writer.write(`${JSON.stringify(item)}\n`)
+
 })
 
 rl.on('close', () => {

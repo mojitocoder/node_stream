@@ -13,7 +13,39 @@ A few cases where streams really shine:
 + All the input is not available just yet. When you write a command line program for users to interact with, input only becomes available over time.
 + Reduce latency and improve user experience. Thanks for streams, your Netflix movies play (almost) immediately. The Netflix app on your PC/TV/browser shows you the content whilst it's still downloading the rest of the movie.
 
+## Four types of streams
+
++ `Readable`: from which data can be read, e.g. `fs.createReadStream()`
++ `Writable`: to which data can be written, e.g. `fs.createWriteStream()`
++ `Duplex`: That are both Readable and Writeable, e.g. `net.Socket`
++ `Transform`: That can modify data as they are written or read, e.g. read and write compressed data from/to a file.
+
+## Two reading modes
+
+Readable streams operate in one of two modes: `flowing` and `paused`:
++ In `flowing mode`, data are automatically read from the underlying system and provided to an application as quickly as possible using events via EventEmitter interface (i.e. each chunk is provided via a `data` event).
+  + The stream implementor decides how often a data event is emitted, e.g. HTTP request may emit an `data` event once a few KBs of data are read.
+  + When there is more data to read (i.e. the end of stream), the stream emits an `end` event.
+  + If there is an error, the stream will emit an `error` event.
++ In `paused mode`, the `stream.read()` method must be explicitly called each time to return a chunk of data from the stream.
+  + A `readable` event is emitted everytime a chunk of data is ready.
+  + A `end` event is emitted when the end of the stream is reached.
+  + `stream.read()` returns `null` when the end of the stream is reached.
+
+**Notes:**
+
++ All `Readable` streams begin in `paused mode` but can be switched on `flowing mode` in one of the following ways:
+  + Adding a `data` event handler
+  + Calling the `stream.resume()` method
+  + Calling the `stream.pipe()` method to send data to a `Writable` stream
++ The `Readable` stream can switch back to `paused` with one of the following:
+  + There is no pipe destination, by calling `stream.pause()` method. Removing all pipe destinations with `stream.unpipe` method.
+  + Adding a `readable` event handler, which has higher priority than `data` event.
++ A `Readable` will not generate data until a mechanism for either consuming or ignoring data is provided. If that mechanism is taken away or disabled, the `Readable` will **attempt** to stop generating data.
+
+
 ## Further reading
+
 + This [wonderful introduction](https://nodesource.com/blog/understanding-streams-in-nodejs/) into streams in Node.js
 + Readline module's [official documentation](https://nodejs.org/api/readline.html)
 + [Async iterator](https://2ality.com/2019/11/nodejs-streams-async-iteration.html) in Node.js streams
@@ -96,5 +128,49 @@ rl.on('close', () => {
 
 If you don't want the content of the input file to be shown on the console, remove the `output` parameter of `readline.createInterface` method call, i.e. comment out `output: process.stdout,`.
 
+4. Read a file using `flowing mode`, i.e. by attaching a `data` event handler
 
+```javascript
+const fs = require('fs')
+const readableStream = fs.createReadStream('postcodes.csv', { encoding: 'utf8' })
+
+let i = 0
+readableStream.on('data', (chunk) => {
+  i++
+  console.log(`chunk ${i}: `, chunk)
+})
+
+readableStream.on('end', () => {
+  console.log('The stream is done')
+})
+
+readableStream.on('error', (err) => {
+  console.error(err)
+})
+
+console.log('The fun has just begun')
+```
+
+Notice in this program, the events (`data` and `end`) are emitted **after** last line, i.e. `console.log('The fun has just begun')` has been executed.
+
+5. Read a stream in`paused mode` using `readble` event and `stream.read()` method
+```javascript
+const fs = require('fs')
+const readableStream = fs.createReadStream('postcodes.csv', { encoding: 'utf8' })
+
+let i = 0
+let chunk = ''
+readableStream.on('readable', () => {
+  i++
+  while ((chunk = readableStream.read()) !== null) {
+    console.log(`chunk ${i}: `, chunk)
+  }
+})
+
+readableStream.on('end', () => {
+  console.log('The stream is done')
+})
+
+console.log('The fun has just begun')
+```
 
