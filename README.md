@@ -153,7 +153,7 @@ console.log('The fun has just begun')
 
 Notice in this program, the events (`data` and `end`) are emitted **after** last line, i.e. `console.log('The fun has just begun')` has been executed.
 
-5. Read a stream in`paused mode` using `readble` event and `stream.read()` method
+5. Read a stream in `paused mode` using `readble` event and `stream.read()` method
 ```javascript
 const fs = require('fs')
 const readableStream = fs.createReadStream('postcodes.csv', { encoding: 'utf8' })
@@ -173,4 +173,79 @@ readableStream.on('end', () => {
 
 console.log('The fun has just begun')
 ```
+
+6. `http.response` is a `Readable stream` and can be read using 3 ways:
+   + `response.pipe()` method
+   + Using `flowing mode` with `data` event
+   + Using `paused mode` with `readable` event and `response.read()` method
+```javascript
+const http = require('https')
+const fs = require('fs')
+
+const downloadPipe = function (url, saveAsFile, callback) {
+  const writer = fs.createWriteStream(saveAsFile)
+  const request = http.get(url, (response) => {
+    response.pipe(writer)
+    writer.on('finish', () => {
+      writer.close()
+      console.log('Download done')
+    })
+    console.log('Turn the tap on!')
+  }).on('error', (err) => {
+    fs.unlink(saveAsFile)
+    if (callback) callback(err.message)
+  })
+}
+
+const downloadFlowing = function (url, saveAsFile) {
+  const writer = fs.createWriteStream(saveAsFile)
+  const request = http.get(url, (response) => {
+    let i = 0
+
+    response.on('data', (chunk) => {
+      i++
+      writer.write(chunk)
+      console.log(`chunk ${i}\tsize ${chunk.length}`)
+    }).on('end', () => {
+      writer.close()
+      console.log('Download done')
+    })
+
+    console.log('Turn the tap on!')
+  }).on('error', (err) => {
+    fs.unlink(saveAsFile)
+    console.error(err)
+  })
+}
+
+const downloadPaused = function (url, saveAsFile) {
+  const writer = fs.createWriteStream(saveAsFile)
+  const request = http.get(url, (response) => {
+    let i = 0
+    let chunk = ''
+    response.on('readable', () => {
+      i++
+      while ((chunk = response.read()) !== null) {
+        writer.write(chunk)
+        console.log(`chunk ${i}\tsize ${chunk.length}`)
+      }
+    }).on('end', () => {
+      writer.close()
+      console.log('Download done')
+    })
+
+    console.log('Turn the tap on!')
+  }).on('error', (err) => {
+    fs.unlink(saveAsFile)
+    console.error(err)
+  })
+}
+
+const url = 'https://www.freemaptools.com/download/outcode-postcodes/postcode-outcodes.csv'
+const fileName = 'test.txt'
+
+downloadFlowing(url, fileName)
+```
+
+Using either `flowing mode` or `paused mode`, you can see the size of each data chunk (except the last one) to be 16384 Bytes = 16KB.
 

@@ -60,8 +60,8 @@ const downloadPaused = function (url, saveAsFile) {
   })
 }
 
-// const url = 'https://www.freemaptools.com/download/outcode-postcodes/postcode-outcodes.csv'
-// const fileName = 'test.txt'
-const url = 'https://www.freemaptools.com/download/full-postcodes/ukpostcodes.zip'
-const fileName = 'test.zip'
-downloadPaused(url, fileName)
+const url = 'https://www.freemaptools.com/download/outcode-postcodes/postcode-outcodes.csv'
+const fileName = 'test.txt'
+// const url = 'https://www.freemaptools.com/download/full-postcodes/ukpostcodes.zip'
+// const fileName = 'test.zip'
+downloadFlowing(url, fileName)
