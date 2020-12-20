@@ -9,9 +9,10 @@ This article focuses on applying streams with text content and the great `readli
 
 ## Why streams?
 A few cases where streams really shine:
-+ Processing large files that do not fit into computer's memory. Using streams allows you to read the file and process it as the data arrive into your program.
++ Processing large files that do not fit into computer's memory. Using streams allows you to read a file and process each chunk as the data arrive into your program.
 + All the input is not available just yet. When you write a command line program for users to interact with, input only becomes available over time.
 + Reduce latency and improve user experience. Thanks for streams, your Netflix movies play (almost) immediately. The Netflix app on your PC/TV/browser shows you the content whilst it's still downloading the rest of the movie.
++ Reduce bandwidth. You can show the user the interim download result and terminate it if it's not the right one. It would be a waste of bandwidth to download a whole large file only to find out it's the wrong one.
 
 ## Four types of streams
 
@@ -43,6 +44,15 @@ Readable streams operate in one of two modes: `flowing` and `paused`:
   + Adding a `readable` event handler, which has higher priority than `data` event.
 + A `Readable` will not generate data until a mechanism for either consuming or ignoring data is provided. If that mechanism is taken away or disabled, the `Readable` will **attempt** to stop generating data.
 
+## Node.js components
+
+The examples will show you how to work with:
++ `process.stdin` as a `Readable` stream
++ `process.stdout` as a `Writable` stream
++ `fs.createReadStream()` as a `Readable` stream
++ `fs.createWriteStream()` as a `Writable` stream
++ `readline` module, which provides an interface to work with data from a textual `Readable` stream 
++ `http.response` as a `Readable` stream
 
 ## Further reading
 
