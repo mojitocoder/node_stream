@@ -59,6 +59,7 @@ The examples will show you how to work with:
 + This [wonderful introduction](https://nodesource.com/blog/understanding-streams-in-nodejs/) into streams in Node.js
 + Readline module's [official documentation](https://nodejs.org/api/readline.html)
 + [Async iterator](https://2ality.com/2019/11/nodejs-streams-async-iteration.html) in Node.js streams
++ Node.js streams' [cheat sheet](https://devhints.io/nodejs-stream)
 ## Examples
 
 1. Get an input from the user
@@ -259,7 +260,7 @@ downloadFlowing(url, fileName)
 
 Using either `flowing mode` or `paused mode`, you can see the size of each data chunk (except the last one) to be `16384 Bytes` = `16KB`.
 
-7. Utility to copy a file.
+7. Utility to copy a file
 ```javascript
 const fs = require('fs')
 
@@ -291,3 +292,66 @@ copyFile('ukpostcodes.csv', 'test.txt')
 ```
 Notice the size of each chunk is `65536 Bytes` = `64KB`.
 
+8. `Readable.from()` method can create a `readable` stream from a string or a iterator (both synchronous and asynchronous).
+
+   From a string, no buffer is provided. So the whole string will be return in one chunk in a `data` event:
+```javascript
+const { Readable } = require('stream')
+
+const readable = Readable.from('The quick brown fox jumps over the lazy dog')
+
+readable.on('data', (chunk) => {
+  console.log('chunk: ', chunk)
+})
+
+readable.on('end', () => {
+  console.log('The readable stream has been exhausted')
+})
+
+console.log('Start reading the readable stream')
+```
+   From a synchronous iterator:
+```javascript
+const { Readable } = require('stream')
+
+const readable = Readable.from('The quick brown fox jumps over the lazy dog'.split(' '))
+```
+   From an asynchronous iterator, e.g. by using an async generator function
+```javascript
+const { Readable } = require('stream')
+
+async function * generate () {
+  const items = 'The quick brown fox jumps over the lazy dog'.split(' ')
+  for (const item of items) {
+    yield item
+  }
+}
+
+const readable = Readable.from(generate())
+```
+
+9. The `Readable` object constructor can be used to create a new `readable` stream. Notice the `readable.push(null)` is to signal the end of the stream.
+```javascript
+const { Readable } = require('stream')
+
+const readable = new Readable({ objectMode: true, read () {} })
+const items = 'The quick brown fox jumps over the lazy dog'.split(' ')
+for (const item of items) {
+  readable.push(item)
+}
+readable.push(null)
+
+readable.on('data', (chunk) => {
+  console.log('chunk: ', chunk)
+})
+
+readable.on('end', () => {
+  console.log('The readable stream has been exhausted')
+})
+
+readable.on('error', (err) => {
+  console.error(err)
+})
+
+console.log('Start reading the readable stream')
+```
