@@ -1,17 +1,27 @@
 const fs = require('fs')
-const debounce = require('debounce')
 
-async function logChunks(readStream) {
-  for await (const chunk of readStream) {
-    // console.log(chunk)
-    puts(chunk)()
-  }
+const copyFile = (source, target) => {
+  const readableStream = fs.createReadStream(source)
+  const writableStream = fs.createWriteStream(target)
+
+  let i = 0
+  readableStream.on('data', (chunk) => {
+    i++
+    writableStream.write(chunk)
+    console.log(`chunk ${i}\tsize ${chunk.length}`)
+  })
+
+  readableStream.on('end', () => {
+    writableStream.close()
+    console.log('File copy done')
+  })
+
+  readableStream.on('error', (err) => {
+    fs.unlink(target)
+    console.error(err)
+  })
+
+  console.log('Start copying file')
 }
 
-const puts = (val) => debounce(() => {
-  console.log(val)
-}, 5000)
-
-const readableStream = fs.createReadStream('postcodes.csv', {encoding: 'utf8'})
-
-logChunks(readableStream)
+copyFile('ukpostcodes.csv', 'test.txt')

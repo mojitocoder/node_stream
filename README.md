@@ -184,7 +184,7 @@ readableStream.on('end', () => {
 console.log('The fun has just begun')
 ```
 
-6. `http.response` is a `Readable stream` and can be read using 3 ways:
+6. Utility to download a file. `http.response` is a `Readable stream` and can be read using 3 ways:
    + `response.pipe()` method
    + Using `flowing mode` with `data` event
    + Using `paused mode` with `readable` event and `response.read()` method
@@ -257,5 +257,37 @@ const fileName = 'test.txt'
 downloadFlowing(url, fileName)
 ```
 
-Using either `flowing mode` or `paused mode`, you can see the size of each data chunk (except the last one) to be 16384 Bytes = 16KB.
+Using either `flowing mode` or `paused mode`, you can see the size of each data chunk (except the last one) to be `16384 Bytes` = `16KB`.
+
+7. Utility to copy a file.
+```javascript
+const fs = require('fs')
+
+const copyFile = (source, target) => {
+  const readableStream = fs.createReadStream(source)
+  const writableStream = fs.createWriteStream(target)
+
+  let i = 0
+  readableStream.on('data', (chunk) => {
+    i++
+    writableStream.write(chunk)
+    console.log(`chunk ${i}\tsize ${chunk.length}`)
+  })
+
+  readableStream.on('end', () => {
+    writableStream.close()
+    console.log('File copy done')
+  })
+
+  readableStream.on('error', (err) => {
+    fs.unlink(target)
+    console.error(err)
+  })
+
+  console.log('Start copying file')
+}
+
+copyFile('ukpostcodes.csv', 'test.txt')
+```
+Notice the size of each chunk is `65536 Bytes` = `64KB`.
 
